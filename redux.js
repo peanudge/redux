@@ -4,7 +4,7 @@ export const acitonCreator = type => payload => ({
   payload
 }
 )
-export function createStore(reducer) {
+export function createStore(reducer, middlewares = []) {
   let state;
   let handlers = [];
 
@@ -23,10 +23,26 @@ export function createStore(reducer) {
     return state;
   }
 
-  return {
+  // redux의 middleware가 되려면 
+  // store, dispatch, action을 인자로 받아야한다.
+  // 그래서 store, dispatch는 미리 받자
+
+  const store = {
     dispatch,
     getState,
     subscribe,
-  };
+  }
+  
+  middlewares = Array.from(middlewares).reverse();
+  
+  let lastDispatch = dispatch;
+
+  middlewares.forEach((middleware) => {
+    lastDispatch = middleware(store)(lastDispatch);
+  }) 
+
+  store.dispatch = lastDispatch;
+
+  return store;
 }
  
